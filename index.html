@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTO Exam Reviewer</title>
+    <title>LTO Exam Reviewer - English</title>
     <style>
         :root {
             --primary: #0056b3;
@@ -217,6 +217,16 @@
             display: block;
         }
 
+        /* Error Box */
+        #error-msg {
+            display: none;
+            color: red;
+            background: #ffe6e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -224,15 +234,20 @@
 <div class="container">
     <h1>LTO Licensure Reviewer</h1>
 
+    <div id="error-msg"></div>
+
     <div id="quiz-screen">
         <div class="progress-container">
-            <div class="progress-text" id="progress-text">Question 1 of 100</div>
+            <div class="progress-text" id="progress-text">Loading Data...</div>
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" id="progress-bar"></div>
             </div>
         </div>
 
-        <div class="question-text" id="question-display">Loading...</div>
+        <div class="question-text" id="question-display">
+            Initializing...
+            <br><small style="color:#666; font-weight:normal; font-size:0.8rem">If this doesn't change, JavaScript is disabled or blocked.</small>
+        </div>
         
         <div class="options-grid" id="options-container">
             </div>
@@ -258,249 +273,270 @@
 </div>
 
 <script>
-    // Data Structure: Questions, Options, and Correct Answer Index (0, 1, or 2)
-    // Grammar corrected from original source.
+    // Global Error Handler to catch syntax errors
+    window.onerror = function(message, source, lineno, colno, error) {
+        const errorBox = document.getElementById('error-msg');
+        errorBox.style.display = 'block';
+        errorBox.innerHTML = `<strong>Error:</strong> ${message}<br>Line: ${lineno}`;
+    };
+
+    // Full Questions Database (100 Items)
+    // Correctly formatted with escaped characters where necessary.
     const questionsDB = [
-        {
-            q: "1. The three colors of the traffic lights are:",
-            options: ["Red, green and yellow", "Red, green and blue", "Yellow, green and blue"],
-            a: 0
-        },
-        {
-            q: "2. Yellow triangular signs provide what kind of information?",
-            options: ["Warning", "Hospital across", "Speed limit"],
-            a: 0
-        },
-        {
-            q: "3. Which of the following traffic signs are blue?",
-            options: ["Regulatory signs", "Information signs", "Danger warning signs"],
-            a: 1
-        },
-        {
-            q: "4. Steady green light means:",
-            options: ["You must yield to all pedestrians and other motorists using the intersection", "Go, it is safe to do so", "Proceed cautiously through the intersection before the light changes to red"],
-            a: 1
-        },
-        {
-            q: "5. A flashing yellow light at a road crossing signifies:",
-            options: ["Caution - slow down and proceed with caution", "Stop and stay until light stops flashing", "Wait for the green light"],
-            a: 0
-        },
-        {
-            q: "6. A solid white line on the right edge of the highway slopes in towards your left. This shows that:",
-            options: ["There is an intersection joint ahead", "The road will get narrower", "You are approaching a construction area"],
-            a: 1
-        },
-        {
-            q: "7. You are in a No-Passing zone when the center of the road is marked by:",
-            options: ["A broken yellow line", "A broken white line", "Two solid yellow lines"],
-            a: 2
-        },
-        {
-            q: "8. When arrows are painted on the pavement, drivers:",
-            options: ["Must go in the direction of the arrows", "Slow down and prepare to yield right of way", "Are not allowed to change lanes"],
-            a: 0
-        },
-        {
-            q: "9. You may not drive across solid yellow lines except to:",
-            options: ["Change lanes", "Turn left", "Turn right"],
-            a: 1
-        },
-        {
-            q: "10. Double solid yellow lane lines:",
-            options: ["Should not be crossed except with due care", "Should not be crossed anytime", "Does not allow lane changing"],
-            a: 1
-        },
-        {
-            q: "11. You may not cross a single broken white or yellow line:",
-            options: ["When turning left into a driveway", "When passing to the right on a one-way street", "When to do so would interfere with traffic"],
-            a: 2
-        },
-        {
-            q: "12. You may cross over a double line on the road to overtake another car if the line on your side is:",
-            options: ["Solid white", "Broken", "Solid yellow"],
-            a: 1
-        },
-        {
-            q: "13. When you approach a flashing red signal light, you should:",
-            options: ["Wait for the green light before proceeding", "Slow down and proceed with caution", "Come to a full stop and proceed when it is safe to do so"],
-            a: 2
-        },
-        {
-            q: "14. Which of the following hand signals must a driver give when he wants to slow down and stop?",
-            options: ["Left arm bent at elbow, hand pointing up", "Left arm held straight in horizontal position", "Left arm held down and hand pointing at ground"],
-            a: 2
-        },
-        {
-            q: "15. The proper hand signal for a right turn is:",
-            options: ["Left arm bent at elbow, hand pointing up", "Left arm held straight in horizontal position", "Left arm held down and hand pointing at ground"],
-            a: 0
-        },
-        {
-            q: "16. If the driver ahead of you extends his left arm straight out, you are fairly sure that he is going to:",
-            options: ["Turn left at the next intersection", "Pull off to the side of the road to stop", "Turn right at the next intersection"],
-            a: 0
-        },
-        {
-            q: "17. When approaching a railway crossing with a signal device warning the approach of a train, you must:",
-            options: ["Stop not less than 1.5 meters from the nearest rail", "Slow down and proceed with caution", "Pull off to the side of the road to stop"],
-            a: 0
-        },
-        {
-            q: "18. Under what circumstances should you sound your 'horn'?",
-            options: ["As a safety warning", "At school zones", "At hospital zones"],
-            a: 0
-        },
-        {
-            q: "19. What does the law require you to do upon approaching an intersection with a stop sign?",
-            options: ["Slow down and proceed when it is safe to do so", "Stop and proceed when it is safe to do so", "Yield the right-of-way if necessary to vehicles approaching from left or right"],
-            a: 1
-        },
-        {
-            q: "20. Upon approaching an intersection marked with a YIELD SIGN, you are required to:",
-            options: ["Stop before entering the intersection", "Enter the intersection immediately", "Slow down then enter the intersection when the way is clear"],
-            a: 2
-        },
-        {
-            q: "21. The road sign 'Do Not Enter' is a:",
-            options: ["Regulatory sign", "Guide sign", "Warning sign"],
-            a: 0
-        },
-        {
-            q: "22. The Right-of-Way law provides us with:",
-            options: ["Basic rights as drivers", "Rules for when to yield to others", "Rules for turning right"],
-            a: 1
-        },
-        {
-            q: "23. A good safety rule when you are sure you have the legal right-of-way is:",
-            options: ["Never believe on it", "Sound your horn to alert others", "Always demand it"],
-            a: 0
-        },
-        {
-            q: "24. At rotundas (roundabouts), which of the following vehicles have the right-of-way?",
-            options: ["Vehicles which are just about to enter", "Vehicles within the rotunda", "Vehicles facing the green light"],
-            a: 1
-        },
-        {
-            q: "25. At an intersection with no control device, two cars approach at right angles to each other. Which driver must yield?",
-            options: ["The driver who gets there first", "The driver who slows down first", "The driver who gets there last"],
-            a: 2
-        },
-        {
-            q: "26. At an intersection with no control device, two cars approach from opposite directions. Which driver must yield?",
-            options: ["The driver going straight", "The driver turning left", "The driver turning right"],
-            a: 1
-        },
-        {
-            q: "27. At an intersection without a control device, two cars are approaching from opposite directions at approximately the same time, one is turning left and the other turning right. Which driver must yield?",
-            options: ["The driver turning right", "The driver turning left", "The driver who gets there first"],
-            a: 1
-        },
-        {
-            q: "28. At an intersection without stop or yield signs, two cars reach the intersection at the same time. Which car has the right-of-way?",
-            options: ["The car on the right", "The car on the left", "The car that slows down first"],
-            a: 0
-        },
-        {
-            q: "29. A car is positioned in an intersection waiting to turn left when the traffic signal light turns red. Who should go first?",
-            options: ["The driver caught in the intersection waiting to turn left", "The driver making the right turn", "The driver caught with the green light"],
-            a: 0
-        },
-        {
-            q: "30. At an intersection without stop or yield signs, two cars approach from different streets. Which car has the right-of-way?",
-            options: ["The vehicle already in the intersection", "The vehicle on the left", "The vehicle that slows down first"],
-            a: 0
-        },
-        {
-            q: "31. The driver of a car traveling on a highway is required to yield to:",
-            options: ["Any car coming out of a driveway", "Pedestrians", "Cars approaching an intersection from the left"],
-            a: 1
-        },
-        {
-            q: "32. When about to make a left turn, you should give the right-of-way to cars coming from the opposite direction:",
-            options: ["Until at least two cars have passed", "Which are close enough to be dangerous", "Until five cars have passed"],
-            a: 1
-        },
-        {
-            q: "33. If there are pedestrians on a school crossing, you are required to:",
-            options: ["Stop and give way only to persons crossing from your right", "Stop only for children and give way to them from either direction", "Stop and do not proceed until all persons are completely clear off the crossing"],
-            a: 2
-        },
-        {
-            q: "34. Should a driver turning at an intersection give way to pedestrians?",
-            options: ["Yes, a driver turning right or left must give way to pedestrians", "No, pedestrians must give way to all vehicles", "Yes, but only if the driver is turning left"],
-            a: 0
-        },
-        {
-            q: "35. When on a street designed for two-way traffic, you hear the siren of an emergency vehicle. What does the law require you to do?",
-            options: ["Pull to the right and stop", "Speed up to get out of the way", "Continue at high speed"],
-            a: 0
-        },
-        {
-            q: "36. When two vehicles meet on an upgrade road where neither cars pass, which of the two must yield?",
-            options: ["The vehicle facing downhill", "The vehicle facing uphill", "The vehicle that blows its horn first"],
-            a: 0
-        },
-        {
-            q: "37. Before changing lanes in traffic, you should always give a signal, check your rear-view mirror and:",
-            options: ["Turn your head to check other vehicles beside your car", "Sound your horn", "Blink your headlight"],
-            a: 0
-        },
-        {
-            q: "38. You should change lanes only after you have:",
-            options: ["Signaled your intention and checked traffic", "Signaled your intention", "Checked traffic"],
-            a: 0
-        },
-        {
-            q: "39. After passing or overtaking a car, you can safely move back into the lane you left if:",
-            options: ["The driver you have passed honks his horn", "You can see in your rear-view mirror the car you have passed", "You can see in your side-view mirror the car you have passed"],
-            a: 1
-        },
-        {
-            q: "40. You may pass to the right of a car traveling in your direction:",
-            options: ["If the highway is clearly marked for two or more lanes moving towards the same direction", "On a road having one lane in opposite direction", "By driving off the paved roadway"],
-            a: 0
-        },
-        {
-            q: "41. If you are traveling in the wrong lane, what must you do to make a turn as you enter an intersection?",
-            options: ["Make the turn as quickly as possible", "Brake or clutch while actually turning", "Look behind on both sides and see if it is safe before you change lane"],
-            a: 2
-        },
-        {
-            q: "42. You should begin signaling for a right or left turn before reaching the turning point by at least:",
-            options: ["30 meters", "60 meters", "15 meters"],
-            a: 0
-        },
-        {
-            q: "43. You should normally begin a right turn on:",
-            options: ["The lane nearest to the road center", "The lane nearest the right curb", "The same lane as for a left turn"],
-            a: 1
-        },
-        {
-            q: "44. The car behind you wants to pass. You should:",
-            options: ["Blow your horn to allow him to pass", "Slow down slightly and pull to the right", "Pull to the right and stop so he can pass"],
-            a: 1
-        },
-        {
-            q: "45. When driving on the highway at night, you should use low beam headlights (dim lights) when:",
-            options: ["Another driver dims his lights", "Blinded by the headlights of an approaching vehicle", "All of the above"],
-            a: 2
-        },
-        {
-            q: "46. If the brake lights of several cars ahead of you flash on, you should:",
-            options: ["Release accelerator and prepare to brake", "Apply your brakes as soon as possible", "Increase your speed"],
-            a: 0
-        },
-        {
-            q: "47. Which of these steps is NOT correct when making a right turn?",
-            options: ["Stop in the crosswalk", "Signal at least 30 meters ahead of your turn", "Watch for pedestrians on the street you are about to enter"],
-            a: 0
-        },
-        {
-            q: "48. The driver must not overtake at the foot or approach of a bridge because:",
-            options: ["He cannot see oncoming vehicles from the other side of the bridge", "There are pedestrians crossing", "He might obstruct the flow of traffic"],
-            a: 0
-        },
-        {
-            q: "49. The best practice when turning left or right while traveling on a highway is:",
-            options: ["To signal your intention as you make the turn", "To give the electrical and/or hand signal at least 30 meters before you make the turn", "To disregard signaling if there is no traffic ahea
+        { q: "1. The three colors of the traffic lights are:", options: ["Red, green and yellow", "Red, green and blue", "Yellow, green and blue"], a: 0 },
+        { q: "2. Yellow triangular signs provide what kind of information?", options: ["Warning", "Hospital across", "Speed limit"], a: 0 },
+        { q: "3. Which of the following traffic signs are blue?", options: ["Regulatory signs", "Information signs", "Danger warning signs"], a: 1 },
+        { q: "4. Steady green light means:", options: ["You must yield to all pedestrians and other motorists using the intersection", "Go, it is safe to do so", "Proceed cautiously through the intersection before the light changes to red"], a: 1 },
+        { q: "5. A flashing yellow light at a road crossing signifies:", options: ["Caution - slow down and proceed with caution", "Stop and stay until light stops flashing", "Wait for the green light"], a: 0 },
+        { q: "6. A solid white line on the right edge of the highway slopes in towards your left. This shows that:", options: ["There is an intersection joint ahead", "The road will get narrower", "You are approaching a construction area"], a: 1 },
+        { q: "7. You are in a No-Passing zone when the center of the road is marked by:", options: ["A broken yellow line", "A broken white line", "Two solid yellow lines"], a: 2 },
+        { q: "8. When arrows are painted on the pavement, drivers:", options: ["Must go in the direction of the arrows", "Slow down and prepare to yield right of way", "Are not allowed to change lanes"], a: 0 },
+        { q: "9. You may not drive across solid yellow lines except to:", options: ["Change lanes", "Turn left", "Turn right"], a: 1 },
+        { q: "10. Double solid yellow lane lines:", options: ["Should not be crossed except with due care", "Should not be crossed anytime", "Does not allow lane changing"], a: 1 },
+        { q: "11. You may not cross a single broken white or yellow line:", options: ["When turning left into a driveway", "When passing to the right on a one-way street", "When to do so would interfere with traffic"], a: 2 },
+        { q: "12. You may cross over a double line on the road to overtake another car if the line on your side is:", options: ["Solid white", "Broken", "Solid yellow"], a: 1 },
+        { q: "13. When you approach a flashing red signal light, you should:", options: ["Wait for the green light before proceeding", "Slow down and proceed with caution", "Come to a full stop and proceed when it is safe to do so"], a: 2 },
+        { q: "14. Which of the following hand signals must a driver give when he wants to slow down and stop?", options: ["Left arm bent at elbow, hand pointing up", "Left arm held straight in horizontal position", "Left arm held down and hand pointing at ground"], a: 2 },
+        { q: "15. The proper hand signal for a right turn is:", options: ["Left arm bent at elbow, hand pointing up", "Left arm held straight in horizontal position", "Left arm held down and hand pointing at ground"], a: 0 },
+        { q: "16. If the driver ahead of you extends his left arm straight out, you are fairly sure that he is going to:", options: ["Turn left at the next intersection", "Pull off to the side of the road to stop", "Turn right at the next intersection"], a: 0 },
+        { q: "17. When approaching a railway crossing with a signal device warning the approach of a train, you must:", options: ["Stop not less than 1.5 meters from the nearest rail", "Slow down and proceed with caution", "Pull off to the side of the road to stop"], a: 0 },
+        { q: "18. Under what circumstances should you sound your 'horn'?", options: ["As a safety warning", "At school zones", "At hospital zones"], a: 0 },
+        { q: "19. What does the law require you to do upon approaching an intersection with a stop sign?", options: ["Slow down and proceed when it is safe to do so", "Stop and proceed when it is safe to do so", "Yield the right-of-way if necessary to vehicles approaching from left or right"], a: 1 },
+        { q: "20. Upon approaching an intersection marked with a YIELD SIGN, you are required to:", options: ["Stop before entering the intersection", "Enter the intersection immediately", "Slow down then enter the intersection when the way is clear"], a: 2 },
+        { q: "21. The road sign 'Do Not Enter' is a:", options: ["Regulatory sign", "Guide sign", "Warning sign"], a: 0 },
+        { q: "22. The Right-of-Way law provides us with:", options: ["Basic rights as drivers", "Rules for when to yield to others", "Rules for turning right"], a: 1 },
+        { q: "23. A good safety rule when you are sure you have the legal right-of-way is:", options: ["Never believe on it", "Sound your horn to alert others", "Always demand it"], a: 0 },
+        { q: "24. At rotundas (roundabouts), which of the following vehicles have the right-of-way?", options: ["Vehicles which are just about to enter", "Vehicles within the rotunda", "Vehicles facing the green light"], a: 1 },
+        { q: "25. At an intersection with no control device, two cars approach at right angles to each other. Which driver must yield?", options: ["The driver who gets there first", "The driver who slows down first", "The driver who gets there last"], a: 2 },
+        { q: "26. At an intersection with no control device, two cars approach from opposite directions. Which driver must yield?", options: ["The driver going straight", "The driver turning left", "The driver turning right"], a: 1 },
+        { q: "27. At an intersection without a control device, two cars are approaching from opposite directions at approximately the same time, one is turning left and the other turning right. Which driver must yield?", options: ["The driver turning right", "The driver turning left", "The driver who gets there first"], a: 1 },
+        { q: "28. At an intersection without stop or yield signs, two cars reach the intersection at the same time. Which car has the right-of-way?", options: ["The car on the right", "The car on the left", "The car that slows down first"], a: 0 },
+        { q: "29. A car is positioned in an intersection waiting to turn left when the traffic signal light turns red. Who should go first?", options: ["The driver caught in the intersection waiting to turn left", "The driver making the right turn", "The driver caught with the green light"], a: 0 },
+        { q: "30. At an intersection without stop or yield signs, two cars approach from different streets. Which car has the right-of-way?", options: ["The vehicle already in the intersection", "The vehicle on the left", "The vehicle that slows down first"], a: 0 },
+        { q: "31. The driver of a car traveling on a highway is required to yield to:", options: ["Any car coming out of a driveway", "Pedestrians", "Cars approaching an intersection from the left"], a: 1 },
+        { q: "32. When about to make a left turn, you should give the right-of-way to cars coming from the opposite direction:", options: ["Until at least two cars have passed", "Which are close enough to be dangerous", "Until five cars have passed"], a: 1 },
+        { q: "33. If there are pedestrians on a school crossing, you are required to:", options: ["Stop and give way only to persons crossing from your right", "Stop only for children and give way to them from either direction", "Stop and do not proceed until all persons are completely clear off the crossing"], a: 2 },
+        { q: "34. Should a driver turning at an intersection give way to pedestrians?", options: ["Yes, a driver turning right or left must give way to pedestrians", "No, pedestrians must give way to all vehicles", "Yes, but only if the driver is turning left"], a: 0 },
+        { q: "35. When on a street designed for two-way traffic, you hear the siren of an emergency vehicle. What does the law require you to do?", options: ["Pull to the right and stop", "Speed up to get out of the way", "Continue at high speed"], a: 0 },
+        { q: "36. When two vehicles meet on an upgrade road where neither cars pass, which of the two must yield?", options: ["The vehicle facing downhill", "The vehicle facing uphill", "The vehicle that blows its horn first"], a: 0 },
+        { q: "37. Before changing lanes in traffic, you should always give a signal, check your rear-view mirror and:", options: ["Turn your head to check other vehicles beside your car", "Sound your horn", "Blink your headlight"], a: 0 },
+        { q: "38. You should change lanes only after you have:", options: ["Signaled your intention and checked traffic", "Signaled your intention", "Checked traffic"], a: 0 },
+        { q: "39. After passing or overtaking a car, you can safely move back into the lane you left if:", options: ["The driver you have passed honks his horn", "You can see in your rear-view mirror the car you have passed", "You can see in your side-view mirror the car you have passed"], a: 1 },
+        { q: "40. You may pass to the right of a car traveling in your direction:", options: ["If the highway is clearly marked for two or more lanes moving towards the same direction", "On a road having one lane in opposite direction", "By driving off the paved roadway"], a: 0 },
+        { q: "41. If you are traveling in the wrong lane, what must you do to make a turn as you enter an intersection?", options: ["Make the turn as quickly as possible", "Brake or clutch while actually turning", "Look behind on both sides and see if it is safe before you change lane"], a: 2 },
+        { q: "42. You should begin signaling for a right or left turn before reaching the turning point by at least:", options: ["30 meters", "60 meters", "15 meters"], a: 0 },
+        { q: "43. You should normally begin a right turn on:", options: ["The lane nearest to the road center", "The lane nearest the right curb", "The same lane as for a left turn"], a: 1 },
+        { q: "44. The car behind you wants to pass. You should:", options: ["Blow your horn to allow him to pass", "Slow down slightly and pull to the right", "Pull to the right and stop so he can pass"], a: 1 },
+        { q: "45. When driving on the highway at night, you should use low beam headlights (dim lights) when:", options: ["Another driver dims his lights", "Blinded by the headlights of an approaching vehicle", "All of the above"], a: 2 },
+        { q: "46. If the brake lights of several cars ahead of you flash on, you should:", options: ["Release accelerator and prepare to brake", "Apply your brakes as soon as possible", "Increase your speed"], a: 0 },
+        { q: "47. Which of these steps is NOT correct when making a right turn?", options: ["Stop in the crosswalk", "Signal at least 30 meters ahead of your turn", "Watch for pedestrians on the street you are about to enter"], a: 0 },
+        { q: "48. The driver must not overtake at the foot or approach of a bridge because:", options: ["He cannot see oncoming vehicles from the other side of the bridge", "There are pedestrians crossing", "He might obstruct the flow of traffic"], a: 0 },
+        { q: "49. The best practice when turning left or right while traveling on a highway is:", options: ["To signal your intention as you make the turn", "To give the electrical and/or hand signal at least 30 meters before you make the turn", "To disregard signaling if there is no traffic ahead or behind you"], a: 1 },
+        { q: "50. Using the shoulder of the road to pass to the right of a car ahead of you is:", options: ["Allowed if you are turning right", "Allowed if the car ahead is turning left", "Against the law"], a: 2 },
+        { q: "51. Which of the following is not a safe place to overtake?", options: ["When approaching a bridge or upon a curve", "At an intersection", "Both of the above"], a: 2 },
+        { q: "52. A left turn is more dangerous than a right turn because:", options: ["Cars from the right are moving faster", "You have to be alert for vehicles coming from both left and right", "Four-lane streets are wider than two-lane streets"], a: 1 },
+        { q: "53. What light shall be used when vehicles are parked on the highway at night?", options: ["Headlight", "Parking lights or lower-beam headlights", "Signal lights"], a: 1 },
+        { q: "54. Parking lights may be used:", options: ["At anytime", "For parking and when visibility is poor", "When driving on well-lighted streets"], a: 1 },
+        { q: "55. We consider a vehicle parked when:", options: ["It has brought to stop on the shoulder of a highway and remains inactive for an appreciable period of time", "It stops to discharge/take in waiting passengers", "It loads/unloads small quantity or freight with reasonable dispatch and moves away without delay"], a: 0 },
+        { q: "56. When parking downhill, you should turn your front wheels:", options: ["Into the curb or toward the side of the road", "Away from the curb", "Any direction will do"], a: 0 },
+        { q: "57. When parking a car on an upgrade without a curb, the best practice is to:", options: ["Get close to the curb and turn the front wheels away from curb", "Turn wheels sharply to the left", "Turn wheels sharply to the right"], a: 2 },
+        { q: "58. What should you do when parking uphill and there is a curb?", options: ["Turn wheels to curb", "Turn back of wheels to curb", "Turn your front wheels sharply to the left away from curb"], a: 2 },
+        { q: "59. Before moving your car from a parked position, you should:", options: ["Check other traffic, signal and pull from curb when it is safe to do so", "Signal and pull from curb", "Sound your horn and pull from curb slowly"], a: 0 },
+        { q: "60. You may never park:", options: ["On a crosswalk", "On a one-way street", "Within 5-meters of a fire-hydrant"], a: 0 },
+        { q: "61. When loading or unloading passengers, we usually stop at the:", options: ["Right side of the road nearest the sidewalk", "Middle side of the road", "Intersection"], a: 0 },
+        { q: "62. A driver may load and unload passengers:", options: ["Only at designated stops", "Whenever a passenger signals for a stop", "Before an intersection"], a: 0 },
+        { q: "63. Whenever you leave the car unattended, the law says that you stop the engine and:", options: ["Notch effectively the hand brake", "Shift the gear to neutral", "Close the windows"], a: 0 },
+        { q: "64. When you intend to drive slower than the other vehicles, you should use the:", options: ["Outermost (right) lane", "Center lane", "Innermost (left) lane"], a: 0 },
+        { q: "65. When you intend to drive faster than the other vehicles, you should use the:", options: ["Outermost (right) lane", "Center lane", "Innermost (left) lane"], a: 2 },
+        { q: "66. Which of the following is the maximum speed limit on the expressway?", options: ["60 kph", "80 kph", "100 kph"], a: 2 },
+        { q: "67. The speed limit within a school zone during school days is:", options: ["20 kph", "25 kph", "30 kph"], a: 0 },
+        { q: "68. When using the basic speed law as a guide, the choice of speed will be based on:", options: ["Speed of the driver", "Fuel of car being driven", "Traffic and road condition"], a: 2 },
+        { q: "69. Under the basic speed law, you may never drive faster than:", options: ["That which is safe", "The posted limit", "The flow of traffic"], a: 0 },
+        { q: "70. A safe speed to drive your car under adverse condition:", options: ["Depends on the road and weather condition", "Is the posted speed limit", "Depends on the mechanical skill of the driver"], a: 0 },
+        { q: "71. At night, you should never drive at a speed which would prevent you from stopping within the distance:", options: ["You can see in your headlights", "Of 4 car-lengths", "Of 170 feet"], a: 0 },
+        { q: "72. The speed limit signs along the roadways should be thought of as:", options: ["The recommended speed under the best condition", "The recommended speed under the worst condition", "The recommended speed under any condition"], a: 0 },
+        { q: "73. It is more dangerous to drive at the maximum speed limit at night than during daytime because:", options: ["Your reaction time is slower at night", "The roadways are more apt to be slippery at night", "You cannot see too far ahead at night"], a: 2 },
+        { q: "74. Night driving is dangerous because:", options: ["Street lights tend to blur your vision", "More vehicles are on the road at night", "The distance we can see ahead is reduced"], a: 2 },
+        { q: "75. When following behind another car, it is considered a safe rule to allow at least:", options: ["Space for one car", "15 feet of stopping distance", "One-car length per 10 miles of speed (or 3 second rule)"], a: 2 },
+        { q: "76. Which of the following should you do if you feel drowsy while driving?", options: ["Pull off the road and rest", "Move over to the right lane and continue driving", "Increase your speed to get away from other vehicles"], a: 0 },
+        { q: "77. When approaching a sharp curve on the highway, you should:", options: ["Decrease speed before entering the curve", "Increase speed while negotiating the curve", "Apply your brake lightly while taking the curve"], a: 0 },
+        { q: "78. Ignoring traffic lights during late hours of the night could:", options: ["Make you a good driver", "Involve you in a fatal accident", "Decrease your fuel consumption"], a: 1 },
+        { q: "79. A good driving attitude of a driver is:", options: ["Drive slowly", "Drive defensively", "Take chances if possible"], a: 1 },
+        { q: "80. Drivers gather most information with their:", options: ["Cars", "Eyes", "Hands"], a: 1 },
+        { q: "81. Which of the following is most recommended in a way of dealing with fatigue on a long trip?", options: ["Stop periodically for rest and exercise", "Eat much and drink a little alcoholic beverages", "Take an over-the-counter 'keep awake' pill"], a: 0 },
+        { q: "82. What habit will help you prevent a fixed stare and resist distraction?", options: ["Ground viewing", "Moving your eyes regularly by looking near and far", "Another car's speed"], a: 1 },
+        { q: "83. Which of the following can you adjust in order to reduce the chance of collision?", options: ["Your speed and lane position", "The sharpness of a curve", "Another car's speed"], a: 0 },
+        { q: "84. Drivers have to make decisions:", options: ["Only in heavy traffic", "Only until they become experienced", "Continuously as they drive"], a: 2 },
+        { q: "85. When interacting with bicyclists, you must:", options: ["Be more aware of the road condition", "Adjust speed and increase your space margin", "Use different visual-search"], a: 1 },
+        { q: "86. As you drive, your glances to the side and rear view mirrors should be:", options: ["As brief as possible", "As long as you like", "At least one second each"], a: 0 },
+        { q: "87. At night when you meet another vehicle with blinding bright lights, the safest thing to do is:", options: ["Turn your lights on high beam", "Look slightly to the right side of the roadway", "Look at the headlight of the approaching vehicle"], a: 1 },
+        { q: "88. When approaching an intersection and the roadway beyond is blocked with traffic, you should:", options: ["Keep as close as possible to the car ahead", "Proceed slowly into the intersection until the traffic ahead moves on", "Stop before the intersection and wait until traffic ahead moves on"], a: 2 },
+        { q: "89. Throwing bottles, cans or anything from your vehicle windows is:", options: ["Forbidden at all times", "Forbidden only in the province", "Forbidden only in the cities"], a: 0 },
+        { q: "90. The most effective way to deal with a 'tailgater' is to:", options: ["Ignore him but don't allow him to get very close to you", "Slow down and let him pass", "Increase your speed and slam on your brakes"], a: 1 },
+        { q: "91. If you are traveling on a two-lane road and see the chances for trouble are equal on both sides, you should:", options: ["Position your car slightly to the right", "Position your car slightly to the left", "Center your car between the hazards"], a: 2 },
+        { q: "92. When walking on a roadway where there is no sidewalk, the pedestrians must always stay:", options: ["On the left side of the road facing traffic", "On the right side", "Either way will do"], a: 0 },
+        { q: "93. In case of an accident, the first duty of the driver involved is to:", options: ["Pick-up the injured person and take him to the nearest hospital", "Report the accident to the hospital", "Report the accident to the nearest police station"], a: 0 },
+        { q: "94. In case of injuries involved in an accident, the duty of the uninjured driver is to:", options: ["Call a physician", "Keep the victim lying down", "Try to determine who is at fault"], a: 0 },
+        { q: "95. To have one's driver's license suspended means to:", options: ["Have it revalidated by the LTO", "Have it taken away permanently by the LTO", "Have it taken temporarily by the LTO"], a: 2 },
+        { q: "96. The main reasons for requiring motor vehicle inspection is to:", options: ["Earn revenue for the government", "Give the inspector a chance to look at your car", "Try and make sure that cars meet the safety standards"], a: 2 },
+        { q: "97. A public utility vehicle can only be driven by holder of a:", options: ["Student permit", "Non-professional license", "Professional license"], a: 2 },
+        { q: "98. To own a driver's license is:", options: ["An honor", "A right", "A privilege"], a: 2 },
+        { q: "99. To avoid suspension or revocation, how many days must a driver with an apprehended license settle his case with LTO?", options: ["Within 15 days", "Within 10 days", "Within 30 days"], a: 0 },
+        { q: "100. When may you lend your driver's license?", options: ["Under no circumstance", "To another person who is learning to drive", "In Emergencies"], a: 0 }
+    ];
+
+    // State Variables
+    let quizData = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let wrongAnswers = [];
+
+    // DOM Elements
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const questionText = document.getElementById('question-display');
+    const optionsContainer = document.getElementById('options-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const nextBtn = document.getElementById('next-btn');
+    const mistakeList = document.getElementById('mistakes-list');
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startQuiz() {
+        try {
+            console.log("Starting Quiz...");
+            quizData = shuffleArray([...questionsDB]);
+            currentQuestionIndex = 0;
+            score = 0;
+            wrongAnswers = [];
+            
+            quizScreen.style.display = 'block';
+            resultScreen.style.display = 'none';
+            
+            loadQuestion();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('question-display').innerHTML = "Error loading quiz data. Please refresh.";
+        }
+    }
+
+    function loadQuestion() {
+        if (!quizData || quizData.length === 0) return;
+
+        const currentQ = quizData[currentQuestionIndex];
+        
+        // Update Progress
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        progressBar.style.width = `${progressPercent}%`;
+        progressText.innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+
+        // Render Question
+        questionText.innerText = currentQ.q;
+        
+        // Render Options
+        optionsContainer.innerHTML = '';
+        nextBtn.style.display = 'none';
+
+        currentQ.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        const currentQ = quizData[currentQuestionIndex];
+        const allBtns = optionsContainer.children;
+
+        // Disable all buttons
+        for(let btn of allBtns) {
+            btn.disabled = true;
+        }
+
+        if (selectedIndex === currentQ.a) {
+            score++;
+            btnElement.classList.add('selected-correct');
+        } else {
+            btnElement.classList.add('selected-wrong');
+            wrongAnswers.push({
+                question: currentQ.q,
+                chosen: currentQ.options[selectedIndex],
+                correct: currentQ.options[currentQ.a]
+            });
+        }
+
+        nextBtn.style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function finishQuiz() {
+        quizScreen.style.display = 'none';
+        resultScreen.style.display = 'block';
+
+        const finalScoreEl = document.getElementById('final-score');
+        finalScoreEl.innerText = `${score} / ${quizData.length}`;
+
+        renderMistakes();
+    }
+
+    function renderMistakes() {
+        mistakeList.innerHTML = '';
+        if (wrongAnswers.length === 0) {
+            mistakeList.innerHTML = '<li style="text-align:center; padding:20px;">Perfect Score! No mistakes to review.</li>';
+            return;
+        }
+
+        wrongAnswers.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'review-item';
+            li.innerHTML = `
+                <div class="review-q">${item.question}</div>
+                <div class="review-your-ans">❌ You chose: ${item.chosen}</div>
+                <div class="review-correct-ans">✅ Correct: ${item.correct}</div>
+            `;
+            mistakeList.appendChild(li);
+        });
+    }
+
+    function toggleAnswers() {
+        const list = document.getElementById('mistakes-list');
+        const btn = document.getElementById('toggle-ans-btn');
+        list.classList.toggle('show-correct');
+        
+        if(list.classList.contains('show-correct')) {
+            btn.innerText = "Hide Correct Answers";
+        } else {
+            btn.innerText = "Show Correct Answers";
+        }
+    }
+
+    function restartQuiz() {
+        startQuiz();
+    }
+
+    // Safely start the quiz when the DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        startQuiz();
+    });
+
+</script>
+
+</body>
+</html>
