@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTO Exam Reviewer</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --secondary: #f0f4f8;
+            --text: #333;
+            --correct: #28a745;
+            --wrong: #dc3545;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--secondary);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 700px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-text {
+            text-align: right;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Quiz Section */
+        #quiz-screen {
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #f8fbff;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.9;
+        }
+
+        /* Feedback States */
+        .option-btn.selected-correct {
+            background-color: #d4edda;
+            border-color: var(--correct);
+            color: #155724;
+        }
+
+        .option-btn.selected-wrong {
+            background-color: #f8d7da;
+            border-color: var(--wrong);
+            color: #721c24;
+        }
+
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 25px;
+            width: 100%;
+            display: none; /* Hidden until answer selected */
+        }
+
+        .next-btn:hover {
+            background-color: #004494;
+        }
+
+        /* Results Section */
+        #result-screen {
+            display: none;
+        }
+
+        .score-card {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn, .restart-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .toggle-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .restart-btn {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .review-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .review-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+
+        .review-q {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .review-your-ans {
+            color: var(--wrong);
+            font-size: 0.95rem;
+        }
+
+        .review-correct-ans {
+            color: var(--correct);
+            font-size: 0.95rem;
+            margin-top: 4px;
+            display: none; /* Hidden by default */
+            font-weight: 600;
+        }
+
+        .show-correct .review-correct-ans {
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>LTO Licensure Reviewer</h1>
+
+    <div id="quiz-screen">
+        <div class="progress-container">
+            <div class="progress-text" id="progress-text">Question 1 of 100</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="question-text" id="question-display">Loading...</div>
+        
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question</button>
+    </div>
+
+    <div id="result-screen">
+        <div class="score-card">
+            <div>Your Score</div>
+            <div class="score-number" id="final-score">0/0</div>
+        </div>
+
+        <div class="controls">
+            <button class="toggle-btn" id="toggle-ans-btn" onclick="toggleAnswers()">Show Correct Answers</button>
+            <button class="restart-btn" onclick="restartQuiz()">Retake Reviewer</button>
+        </div>
+
+        <h3>Review Mistakes:</h3>
+        <ul class="review-list" id="mistakes-list">
+            </ul>
+    </div>
+</div>
+
+<script>
+    // Data Structure: Questions, Options, and Correct Answer Index (0, 1, or 2)
+    // Grammar corrected from original source.
+    const questionsDB = [
+        {
+            q: "1. The three colors of the traffic lights are:",
+            options: ["Red, green and yellow", "Red, green and blue", "Yellow, green and blue"],
+            a: 0
+        },
+        {
+            q: "2. Yellow triangular signs provide what kind of information?",
+            options: ["Warning", "Hospital across", "Speed limit"],
+            a: 0
+        },
+        {
+            q: "3. Which of the following traffic signs are blue?",
+            options: ["Regulatory signs", "Information signs", "Danger warning signs"],
+            a: 1
+        },
+        {
+            q: "4. Steady green light means:",
+            options: ["You must yield to all pedestrians and other motorists using the intersection", "Go, it is safe to do so", "Proceed cautiously through the intersection before the light changes to red"],
+            a: 1
+        },
+        {
+            q: "5. A flashing yellow light at a road crossing signifies:",
+            options: ["Caution - slow down and proceed with caution", "Stop and stay until light stops flashing", "Wait for the green light"],
+            a: 0
+        },
+        {
+            q: "6. A solid white line on the right edge of the highway slopes in towards your left. This shows that:",
+            options: ["There is an intersection joint ahead", "The road will get narrower", "You are approaching a construction area"],
+            a: 1
+        },
+        {
+            q: "7. You are in a No-Passing zone when the center of the road is marked by:",
+            options: ["A broken yellow line", "A broken white line", "Two solid yellow lines"],
+            a: 2
+        },
+        {
+            q: "8. When arrows are painted on the pavement, drivers:",
+            options: ["Must go in the direction of the arrows", "Slow down and prepare to yield right of way", "Are not allowed to change lanes"],
+            a: 0
+        },
+        {
+            q: "9. You may not drive across solid yellow lines except to:",
+            options: ["Change lanes", "Turn left", "Turn right"],
+            a: 1
+        },
+        {
+            q: "10. Double solid yellow lane lines:",
+            options: ["Should not be crossed except with due care", "Should not be crossed anytime", "Does not allow lane changing"],
+            a: 1
+        },
+        {
+            q: "11. You may not cross a single broken white or yellow line:",
+            options: ["When turning left into a driveway", "When passing to the right on a one-way street", "When to do so would interfere with traffic"],
+            a: 2
+        },
+        {
+            q: "12. You may cross over a double line on the road to overtake another car if the line on your side is:",
+            options: ["Solid white", "Broken", "Solid yellow"],
+            a: 1
+        },
+        {
+            q: "13. When you approach a flashing red signal light, you should:",
+            options: ["Wait for the green light before proceeding", "Slow down and proceed with caution", "Come to a full stop and proceed when it is safe to do so"],
+            a: 2
+        },
+        {
+            q: "14. Which of the following hand signals must a driver give when he wants to slow down and stop?",
+            options: ["Left arm bent at elbow, hand pointing up", "Left arm held straight in horizontal position", "Left arm held down and hand pointing at ground"],
+            a: 2
+        },
+        {
+            q: "15. The proper hand signal for a right turn is:",
+            options: ["Left arm bent at elbow, hand pointing up", "Left arm held straight in horizontal position", "Left arm held down and hand pointing at ground"],
+            a: 0
+        },
+        {
+            q: "16. If the driver ahead of you extends his left arm straight out, you are fairly sure that he is going to:",
+            options: ["Turn left at the next intersection", "Pull off to the side of the road to stop", "Turn right at the next intersection"],
+            a: 0
+        },
+        {
+            q: "17. When approaching a railway crossing with a signal device warning the approach of a train, you must:",
+            options: ["Stop not less than 1.5 meters from the nearest rail", "Slow down and proceed with caution", "Pull off to the side of the road to stop"],
+            a: 0
+        },
+        {
+            q: "18. Under what circumstances should you sound your 'horn'?",
+            options: ["As a safety warning", "At school zones", "At hospital zones"],
+            a: 0
+        },
+        {
+            q: "19. What does the law require you to do upon approaching an intersection with a stop sign?",
+            options: ["Slow down and proceed when it is safe to do so", "Stop and proceed when it is safe to do so", "Yield the right-of-way if necessary to vehicles approaching from left or right"],
+            a: 1
+        },
+        {
+            q: "20. Upon approaching an intersection marked with a YIELD SIGN, you are required to:",
+            options: ["Stop before entering the intersection", "Enter the intersection immediately", "Slow down then enter the intersection when the way is clear"],
+            a: 2
+        },
+        {
+            q: "21. The road sign 'Do Not Enter' is a:",
+            options: ["Regulatory sign", "Guide sign", "Warning sign"],
+            a: 0
+        },
+        {
+            q: "22. The Right-of-Way law provides us with:",
+            options: ["Basic rights as drivers", "Rules for when to yield to others", "Rules for turning right"],
+            a: 1
+        },
+        {
+            q: "23. A good safety rule when you are sure you have the legal right-of-way is:",
+            options: ["Never believe on it", "Sound your horn to alert others", "Always demand it"],
+            a: 0
+        },
+        {
+            q: "24. At rotundas (roundabouts), which of the following vehicles have the right-of-way?",
+            options: ["Vehicles which are just about to enter", "Vehicles within the rotunda", "Vehicles facing the green light"],
+            a: 1
+        },
+        {
+            q: "25. At an intersection with no control device, two cars approach at right angles to each other. Which driver must yield?",
+            options: ["The driver who gets there first", "The driver who slows down first", "The driver who gets there last"],
+            a: 2
+        },
+        {
+            q: "26. At an intersection with no control device, two cars approach from opposite directions. Which driver must yield?",
+            options: ["The driver going straight", "The driver turning left", "The driver turning right"],
+            a: 1
+        },
+        {
+            q: "27. At an intersection without a control device, two cars are approaching from opposite directions at approximately the same time, one is turning left and the other turning right. Which driver must yield?",
+            options: ["The driver turning right", "The driver turning left", "The driver who gets there first"],
+            a: 1
+        },
+        {
+            q: "28. At an intersection without stop or yield signs, two cars reach the intersection at the same time. Which car has the right-of-way?",
+            options: ["The car on the right", "The car on the left", "The car that slows down first"],
+            a: 0
+        },
+        {
+            q: "29. A car is positioned in an intersection waiting to turn left when the traffic signal light turns red. Who should go first?",
+            options: ["The driver caught in the intersection waiting to turn left", "The driver making the right turn", "The driver caught with the green light"],
+            a: 0
+        },
+        {
+            q: "30. At an intersection without stop or yield signs, two cars approach from different streets. Which car has the right-of-way?",
+            options: ["The vehicle already in the intersection", "The vehicle on the left", "The vehicle that slows down first"],
+            a: 0
+        },
+        {
+            q: "31. The driver of a car traveling on a highway is required to yield to:",
+            options: ["Any car coming out of a driveway", "Pedestrians", "Cars approaching an intersection from the left"],
+            a: 1
+        },
+        {
+            q: "32. When about to make a left turn, you should give the right-of-way to cars coming from the opposite direction:",
+            options: ["Until at least two cars have passed", "Which are close enough to be dangerous", "Until five cars have passed"],
+            a: 1
+        },
+        {
+            q: "33. If there are pedestrians on a school crossing, you are required to:",
+            options: ["Stop and give way only to persons crossing from your right", "Stop only for children and give way to them from either direction", "Stop and do not proceed until all persons are completely clear off the crossing"],
+            a: 2
+        },
+        {
+            q: "34. Should a driver turning at an intersection give way to pedestrians?",
+            options: ["Yes, a driver turning right or left must give way to pedestrians", "No, pedestrians must give way to all vehicles", "Yes, but only if the driver is turning left"],
+            a: 0
+        },
+        {
+            q: "35. When on a street designed for two-way traffic, you hear the siren of an emergency vehicle. What does the law require you to do?",
+            options: ["Pull to the right and stop", "Speed up to get out of the way", "Continue at high speed"],
+            a: 0
+        },
+        {
+            q: "36. When two vehicles meet on an upgrade road where neither cars pass, which of the two must yield?",
+            options: ["The vehicle facing downhill", "The vehicle facing uphill", "The vehicle that blows its horn first"],
+            a: 0
+        },
+        {
+            q: "37. Before changing lanes in traffic, you should always give a signal, check your rear-view mirror and:",
+            options: ["Turn your head to check other vehicles beside your car", "Sound your horn", "Blink your headlight"],
+            a: 0
+        },
+        {
+            q: "38. You should change lanes only after you have:",
+            options: ["Signaled your intention and checked traffic", "Signaled your intention", "Checked traffic"],
+            a: 0
+        },
+        {
+            q: "39. After passing or overtaking a car, you can safely move back into the lane you left if:",
+            options: ["The driver you have passed honks his horn", "You can see in your rear-view mirror the car you have passed", "You can see in your side-view mirror the car you have passed"],
+            a: 1
+        },
+        {
+            q: "40. You may pass to the right of a car traveling in your direction:",
+            options: ["If the highway is clearly marked for two or more lanes moving towards the same direction", "On a road having one lane in opposite direction", "By driving off the paved roadway"],
+            a: 0
+        },
+        {
+            q: "41. If you are traveling in the wrong lane, what must you do to make a turn as you enter an intersection?",
+            options: ["Make the turn as quickly as possible", "Brake or clutch while actually turning", "Look behind on both sides and see if it is safe before you change lane"],
+            a: 2
+        },
+        {
+            q: "42. You should begin signaling for a right or left turn before reaching the turning point by at least:",
+            options: ["30 meters", "60 meters", "15 meters"],
+            a: 0
+        },
+        {
+            q: "43. You should normally begin a right turn on:",
+            options: ["The lane nearest to the road center", "The lane nearest the right curb", "The same lane as for a left turn"],
+            a: 1
+        },
+        {
+            q: "44. The car behind you wants to pass. You should:",
+            options: ["Blow your horn to allow him to pass", "Slow down slightly and pull to the right", "Pull to the right and stop so he can pass"],
+            a: 1
+        },
+        {
+            q: "45. When driving on the highway at night, you should use low beam headlights (dim lights) when:",
+            options: ["Another driver dims his lights", "Blinded by the headlights of an approaching vehicle", "All of the above"],
+            a: 2
+        },
+        {
+            q: "46. If the brake lights of several cars ahead of you flash on, you should:",
+            options: ["Release accelerator and prepare to brake", "Apply your brakes as soon as possible", "Increase your speed"],
+            a: 0
+        },
+        {
+            q: "47. Which of these steps is NOT correct when making a right turn?",
+            options: ["Stop in the crosswalk", "Signal at least 30 meters ahead of your turn", "Watch for pedestrians on the street you are about to enter"],
+            a: 0
+        },
+        {
+            q: "48. The driver must not overtake at the foot or approach of a bridge because:",
+            options: ["He cannot see oncoming vehicles from the other side of the bridge", "There are pedestrians crossing", "He might obstruct the flow of traffic"],
+            a: 0
+        },
+        {
+            q: "49. The best practice when turning left or right while traveling on a highway is:",
+            options: ["To signal your intention as you make the turn", "To give the electrical and/or hand signal at least 30 meters before you make the turn", "To disregard signaling if there is no traffic ahea
